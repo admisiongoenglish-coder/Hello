@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BibliaGo – Prototype</title>
+  <style>
+    :root {
+      --primary: #58CC02;
+      --primary-dark: #46A302;
+      --secondary: #1CB0F6;
+      --danger: #FF4B4B;
+      --warning: #FFC800;
+      --purple: #A560E8;
+      --bg: #F7F7F7;
+      --card: #FFFFFF;
+      --text: #3C3C3C;
+      --text-light: #777;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .hidden { display: none !important; }
+    .screen { min-height: 100vh; padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 90px; }
+    
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      position: sticky;
+      top: 8px;
+      z-index: 10;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .stat.streak { color: #FF9600; }
+    .stat.xp { color: var(--secondary); }
+    .stat.energy { color: var(--danger); }
+    .stat.gems { color: var(--purple); }
+
+    .path {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 0 40px;
+    }
+    .unit-title {
+      background: var(--primary);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+    }
+    .lesson-node {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #E5E5E5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 4px solid transparent;
+      position: relative;
+    }
+    .lesson-node.available {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 0 var(--primary-dark);
+    }
+    .lesson-node.available:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+    .lesson-node.completed {
+      background: var(--secondary);
+      color: white;
+      box-shadow: 0 4px 0 #1899D6;
+    }
+    .lesson-node.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .lesson-node.exam {
+      border-radius: 16px;
+      width: 100px;
+      height: 60px;
+      background: #FF9600;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px;
+      line-height: 1.2;
+    }
+    .connector {
+      width: 4px;
+      height: 22px;
+      background: #E5E5E5;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 0 var(--primary-dark);
+    }
+    .btn-primary:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+    .btn-secondary {
+      background: white;
+      color: var(--secondary);
+      border: 2px solid var(--secondary);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    h2 { font-size: 20px; margin-bottom: 12px; }
+    h3 { font-size: 17px; margin: 16px 0 8px; }
+    p { color: var(--text-light); margin-bottom: 10px; }
+    .grammar-box {
+      background: #F0F9FF;
+      border-left: 4px solid var(--secondary);
+      padding: 14px;
+      border-radius: 0 12px 12px 0;
+      margin: 14px 0;
+      font-size: 15px;
+    }
+    .example {
+      background: #F0FFF4;
+      border-left: 4px solid var(--primary);
+      padding: 12px;
+      border-radius: 0 12px 12px 0;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .bible-ref {
+      font-style: italic;
+      color: #666;
+      font-size: 13px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #E5E5E5;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    label {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .option {
+      padding: 14px 16px;
+      border: 2px solid #E5E5E5;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .option:hover { border-color: var(--secondary); background: #F8FCFF; }
+    .option.correct { background: #D7FFB8; border-color: var(--primary); }
+    .option.wrong { background: #FFDFE0; border-color: var(--danger); }
+    .option.disabled { pointer-events: none; }
+
+    .progress-bar {
+      height: 12px;
+      background: #E5E5E5;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 50;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .nav-item.active { color: var(--primary); font-weight: 700; }
+    .nav-item span { font-size: 22px; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .big-emoji { font-size: 64px; margin-bottom: 12px; }
+
+    .lang-choice {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .lang-choice button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: 2px solid #E5E5E5;
+      background: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-choice button.selected {
+      border-color: var(--primary);
+      background: #E8F9E0;
+    }
+
+    .feedback {
+      padding: 12px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-weight: 600;
+    }
+    .feedback.correct { background: #D7FFB8; color: #2E7D00; }
+    .feedback.wrong { background: #FFDFE0; color: #C62828; }
+  </style>
+</head>
+<body>
+
+  <!-- REGISTER -->
+  <div id="screen-register" class="screen">
+    <div style="text-align:center; margin: 30px 0 24px;">
+      <div style="font-size:64px;">📖</div>
+      <h1>BibliaGo</h1>
+      <p>Learn the Bible in a fun and deep way</p>
+    </div>
+
+    <div class="card">
+      <h2>Create Account</h2>
+      
+      <label>Role</label>
+      <select id="reg-role">
+        <option value="student">Student</option>
+        <option value="parent">Parent / Tutor</option>
+        <option value="teacher">Teacher / Mentor</option>
+      </select>
+
+      <label>Full name</label>
+      <input type="text" id="reg-name" placeholder="Your name" />
+
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="email@example.com" />
+
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="••••••••" />
+
+      <label>Identity document (photo)</label>
+      <input type="file" id="reg-doc" accept="image/*" />
+
+      <label style="margin-top:12px; display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="reg-drive" style="width:auto;" /> 
+        Backup my progress to Google Drive
+      </label>
+
+      <button class="btn btn-primary" onclick="register()">Create Account</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen hidden">
+    <div class="top-bar">
+      <div class="stat streak">🔥 <span id="streak-count">0</span></div>
+      <div class="stat xp">⚡ <span id="xp-count">0</span></div>
+      <div class="stat energy">❤️ <span id="energy-count">25</span></div>
+      <div class="stat gems">💎 <span id="gems-count">0</span></div>
+    </div>
+
+    <div style="text-align:center; margin-bottom:16px;">
+      <h2 id="level-title">Level 1 – Genesis</h2>
+      <p>CEFR A1 · The Beginning</p>
+    </div>
+
+    <div class="path" id="learning-path"></div>
+  </div>
+
+  <!-- LESSON -->
+  <div id="screen-lesson" class="screen hidden">
+    <div class="top-bar">
+      <div style="font-weight:700; font-size:14px;" id="lesson-header">Lesson</div>
+      <div class="progress-bar" style="flex:1; margin:0 12px;">
+        <div class="progress-fill" id="lesson-progress" style="width:0%"></div>
+      </div>
+      <div class="stat energy">❤️ <span id="lesson-energy">25</span></div>
+    </div>
+
+    <div class="card">
+      <h2 id="lesson-title">Lesson Title</h2>
+      <p id="lesson-objective" style="color:var(--secondary); font-weight:600;"></p>
+      <div id="lesson-content"></div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Continue</button>
+  </div>
+
+  <!-- EXAM -->
+  <div id="screen-exam" class="screen hidden">
+    <div class="top-bar">
+      <div style="font-weight:700;">📝 Level 1 Exam</div>
+      <div class="stat" id="exam-timer">40:00</div>
+    </div>
+    <div class="card">
+      <h2 id="exam-section-title">Section</h2>
+      <p id="exam-instruction"></p>
+      <div id="exam-content"></div>
+    </div>
+    <button class="btn btn-primary" id="btn-exam-next" onclick="nextExamPart()">Next</button>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="screen-profile" class="screen hidden">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:64px;">👤</div>
+      <h2 id="profile-name">User</h2>
+      <p id="profile-role">Student</p>
+      <p>Document: <span id="profile-doc-status">Pending verification</span></p>
+    </div>
+
+    <div class="card">
+      <h2>Progress</h2>
+      <p>Total XP: <strong id="profile-xp">0</strong></p>
+      <p>Current streak: <strong id="profile-streak">0</strong> days</p>
+      <p>Max streak: <strong id="profile-max-streak">0</strong> days</p>
+      <p>Current level: <strong>1 – Genesis (A1)</strong></p>
+    </div>
+
+    <div class="card">
+      <h2>Language Preference</h2>
+      <p>Grammar explanations:</p>
+      <div class="lang-choice">
+        <button id="pref-en" onclick="setLangPref('en')">English</button>
+        <button id="pref-es" onclick="setLangPref('es')">Spanish</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Backup</h2>
+      <button class="btn btn-secondary" onclick="backupToDrive()">Backup to Google Drive</button>
+      <button class="btn btn-secondary" style="margin-top:10px;" onclick="alert('Progress restored from local storage')">Restore from local</button>
+    </div>
+
+    <button class="btn btn-danger" style="margin-top:20px;" onclick="logout()">Log out</button>
+  </div>
+
+  <!-- MODALS -->
+  <div id="modal-lang" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="big-emoji">🌐</div>
+      <h2>Grammar Explanation Language</h2>
+      <p>Would you like the grammar explanation in <strong>English</strong> or <strong>Spanish</strong>?</p>
+      <div class="lang-choice">
+        <button onclick="chooseLang('en')">English</button>
+        <button onclick="chooseLang('es')">Spanish</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-reward" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="big-emoji">🎉</div>
+      <h2 id="reward-title">Lesson Complete!</h2>
+      <p id="reward-xp" style="font-size:22px; font-weight:700; color:var(--secondary);">+15 XP</p>
+      <p id="reward-streak"></p>
+      <button class="btn btn-primary" onclick="closeReward()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav hidden" id="bottom-nav">
+    <div class="nav-item active" onclick="showScreen('home')">
+      <span>🏠</span> Home
+    </div>
+    <div class="nav-item" onclick="showScreen('profile')">
+      <span>👤</span> Profile
+    </div>
+    <div class="nav-item" onclick="alert('Community of Faith – Coming soon')">
+      <span>💬</span> Community
+    </div>
+    <div class="nav-item" onclick="alert('Schedule class – Coming soon')">
+      <span>📅</span> Classes
+    </div>
+  </div>
+
+  <script>
+    // ========== STATE ==========
+    let user = null;
+    let progress = {
+      xp: 0,
+      streak: 0,
+      maxStreak: 0,
+      energy: 25,
+      gems: 0,
+      completedLessons: [],
+      lastStudyDate: null,
+      langPref: 'en'
+    };
+
+    // ========== LESSON DATA ==========
+    const lessons = [
+      {
+        id: 1,
+        title: "God Creates",
+        unit: "Unit 1 – Creation",
+        emoji: "🌍",
+        objective: "Present Simple + Creation vocabulary",
+        type: "lesson",
+        steps: [
+          { type: "lang-check", topic: "Present Simple" },
+          { 
+            type: "grammar", 
+            title: "Present Simple",
+            en: `<div class="grammar-box">
+              <strong>We use the Present Simple</strong> to talk about facts, habits and things that are always true.<br><br>
+              <strong>Form:</strong><br>
+              • Affirmative: Subject + base verb (+ <em>s/es</em> for he/she/it)<br>
+              • Negative: Subject + do/does not + base verb<br>
+              • Question: Do/Does + subject + base verb?<br><br>
+              <strong>Spelling for he/she/it:</strong><br>
+              • Most verbs → add <strong>-s</strong> (create → creates)<br>
+              • -ch, -sh, -ss, -x, -o → add <strong>-es</strong> (go → goes)<br>
+              • consonant + y → y to i + <strong>-es</strong> (study → studies)
+            </div>`,
+            es: `<div class="grammar-box">
+              <strong>Usamos el Present Simple</strong> para hechos, hábitos y verdades generales.<br><br>
+              <strong>Forma:</strong><br>
+              • Afirmativa: Sujeto + verbo base (+ <em>s/es</em> para he/she/it)<br>
+              • Negativa: Sujeto + do/does not + verbo base<br>
+              • Pregunta: Do/Does + sujeto + verbo base?<br><br>
+              <strong>Ortografía he/she/it:</strong><br>
+              • La mayoría → añade <strong>-s</strong><br>
+              • -ch, -sh, -ss, -x, -o → <strong>-es</strong><br>
+              • consonante + y → y→i + <strong>-es</strong>
+            </div>`
+          },
+          {
+            type: "examples",
+            content: `<div class="example">
+              <strong>Biblical examples:</strong><br>
+              • God <strong>creates</strong> the heavens and the earth. <span class="bible-ref">(Genesis 1:1)</span><br>
+              • The Spirit of God <strong>hovers</strong> over the waters.<br>
+              • God <strong>sees</strong> that it is good.<br>
+              • God <strong>does not</strong> create chaos.<br>
+              • <strong>Does</strong> God rest on the seventh day?
+            </div>`
+          },
+          {
+            type: "exercise",
+            question: "1. God _____ the light.",
+            options: ["create", "creates", "creating", "created"],
+            correct: 1
+          },
+          {
+            type: "exercise",
+            question: "2. The animals _____ on the land.",
+            options: ["live", "lives", "living", "lived"],
+            correct: 0
+          },
+          {
+            type: "exercise",
+            question: "3. _____ God rest on the seventh day?",
+            options: ["Do", "Does", "Is", "Are"],
+            correct: 1
+          },
+          {
+            type: "exercise",
+            question: "4. God _____ not leave the world empty.",
+            options: ["do", "does", "is", "are"],
+            correct: 1
+          },
+          {
+            type: "production",
+            content: `<p><strong>Speaking practice:</strong></p>
+              <p>Record yourself saying 4 true sentences about Creation using the Present Simple.</p>
+              <p style="color:var(--text-light); font-size:14px;">Example: “God creates the sun and the moon.”</p>`
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Adam and Eve",
+        unit: "Unit 1 – Creation",
+        emoji: "👨‍👩",
+        objective: "Pronouns & Possessives",
+        type: "lesson",
+        steps: [
+          { type: "lang-check", topic: "Pronouns and Possessives" },
+          { 
+            type: "grammar", 
+            title: "Pronouns & Possessives",
+            en: `<div class="grammar-box">
+              <strong>Subject pronouns:</strong> I, you, he, she, it, we, they<br>
+              <strong>Object pronouns:</strong> me, you, him, her, it, us, them<br>
+              <strong>Possessive adjectives:</strong> my, your, his, her, its, our, their
+            </div>`,
+            es: `<div class="grammar-box">
+              <strong>Pronombres sujeto:</strong> I, you, he, she, it, we, they<br>
+              <strong>Pronombres objeto:</strong> me, you, him, her, it, us, them<br>
+              <strong>Adjetivos posesivos:</strong> my, your, his, her, its, our, their
+            </div>`
+          },
+          {
+            type: "examples",
+            content: `<div class="example">
+              • God creates <strong>him</strong> (Adam).<br>
+              • God gives <strong>her</strong> (Eve) to Adam.<br>
+              • This is <strong>my</strong> bone and <strong>my</strong> flesh.<br>
+              • They hide because <strong>their</strong> eyes are opened.
+            </div>`
+          },
+          {
+            type: "exercise",
+            question: "God creates Adam. → God creates _____.",
+            options: ["he", "him", "his", "her"],
+            correct: 1
+          },
+          {
+            type: "exercise",
+            question: "This is _____ bone and _____ flesh. (Adam speaking)",
+            options: ["my / my", "his / his", "her / her", "our / our"],
+            correct: 0
+          },
+          {
+            type: "production",
+            content: `<p><strong>Speaking:</strong> Describe Adam and Eve using at least 5 pronouns or possessives.</p>`
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "The Fall",
+        unit: "Unit 2 – The Fall",
+        emoji: "🍎",
+        objective: "Past Simple (regular verbs)",
+        type: "lesson",
+        steps: [
+          { type: "lang-check", topic: "Past Simple – regular verbs" },
+          { 
+            type: "grammar", 
+            title: "Past Simple (regular)",
+            en: `<div class="grammar-box">
+              We use the <strong>Past Simple</strong> for finished actions in the past.<br><br>
+              Regular verbs: verb + <strong>-ed</strong><br>
+              • create → created<br>
+              • walk → walked<br>
+              • open → opened<br><br>
+              <strong>Spelling:</strong><br>
+              • Most verbs: +ed<br>
+              • Ending in -e: +d (live → lived)<br>
+              • Consonant + y: y → ied (try → tried)<br>
+              • CVC short verbs: double consonant (stop → stopped)
+            </div>`,
+            es: `<div class="grammar-box">
+              Usamos el <strong>Past Simple</strong> para acciones terminadas en el pasado.<br><br>
+              Verbos regulares: verbo + <strong>-ed</strong><br>
+              Reglas de ortografía incluidas en la versión en inglés.
+            </div>`
+          },
+          {
+            type: "examples",
+            content: `<div class="example">
+              • The serpent <strong>deceived</strong> Eve.<br>
+              • They <strong>heard</strong> the sound of the Lord God.<br>
+              • God <strong>called</strong> to Adam.
+            </div>`
+          },
+          {
+            type: "exercise",
+            question: "The serpent _____ Eve.",
+            options: ["deceive", "deceived", "deceives", "deceiving"],
+            correct: 1
+          },
+          {
+            type: "exercise",
+            question: "God _____ Adam in the garden.",
+            options: ["call", "calls", "called", "calling"],
+            correct: 2
+          },
+          {
+            type: "production",
+            content: `<p><strong>Speaking:</strong> Tell the story of the Fall in 4–5 sentences using Past Simple.</p>`
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "Noah & the Ark",
+        unit: "Unit 2 – The Fall",
+        emoji: "🚢",
+        objective: "Future with will + time expressions",
+        type: "lesson",
+        steps: [
+          { type: "lang-check", topic: "Future Simple (will)" },
+          { 
+            type: "grammar", 
+            title: "Future with will",
+            en: `<div class="grammar-box">
+              <strong>will + base verb</strong> → future facts, promises and decisions.<br><br>
+              • God <strong>will</strong> destroy the earth with a flood.<br>
+              • I <strong>will</strong> establish my covenant with you.<br>
+              • It <strong>will</strong> rain for forty days and forty nights.<br><br>
+              Time expressions: tomorrow, next week, soon, one day, forever, in the future
+            </div>`,
+            es: `<div class="grammar-box">
+              <strong>will + verbo base</strong> → hechos futuros, promesas y decisiones.<br>
+              Expresiones de tiempo: tomorrow, next week, soon, one day, forever...
+            </div>`
+          },
+          {
+            type: "examples",
+            content: `<div class="example">
+              • God said: “I <strong>will</strong> never again curse the ground.”<br>
+              • The rainbow <strong>will</strong> be a sign of the covenant.
+            </div>`
+          },
+          {
+            type: "exercise",
+            question: "God _____ establish a covenant with Noah.",
+            options: ["will", "is", "does", "has"],
+            correct: 0
+          },
+          {
+            type: "production",
+            content: `<p><strong>Speaking:</strong> What promise did God give to Noah? Answer using “will”.</p>`
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Abraham’s Call",
+        unit: "Unit 3 – Promise",
+        emoji: "⭐",
+        objective: "Wh- questions + prepositions",
+        type: "lesson",
+        steps: [
+          { type: "lang-check", topic: "Wh- questions & prepositions" },
+          { 
+            type: "grammar", 
+            title: "Questions & Prepositions",
+            en: `<div class="grammar-box">
+              <strong>Wh- questions:</strong> What, Where, When, Who, Why, How<br>
+              <strong>Prepositions of place/movement:</strong> in, on, at, to, from, with<br><br>
+              Examples:<br>
+              • Where did God call Abraham from?<br>
+              • God said: “Go <strong>to</strong> the land that I will show you.”
+            </div>`,
+            es: `<div class="grammar-box">
+              Preguntas con Wh- y preposiciones de lugar/movimiento (in, on, at, to, from...).
+            </div>`
+          },
+          {
+            type: "exercise",
+            question: "_____ did God tell Abraham to go?",
+            options: ["What", "Where", "Who", "Why"],
+            correct: 1
+          },
+          {
+            type: "production",
+            content: `<p><strong>Speaking:</strong> Answer: Where was Abraham from? Where did God send him?</p>`
+          }
+        ]
+      },
+      {
+        id: 6,
+        title: "LEVEL 1 EXAM",
+        unit: "Final Exam",
+        emoji: "📝",
+        objective: "Full A1 Exam – Listening, Reading, Grammar, Writing, Speaking",
+        type: "exam"
+      }
+    ];
+
+    // ========== EXAM DATA ==========
+    const examParts = [
+      {
+        title: "Grammar & Vocabulary",
+        instruction: "Choose the correct answer. (A1 level – challenging)",
+        questions: [
+          { q: "God _____ the heavens and the earth.", opts: ["create", "creates", "creating"], correct: 1 },
+          { q: "_____ God rest on the seventh day?", opts: ["Do", "Does", "Is"], correct: 1 },
+          { q: "The serpent _____ Eve.", opts: ["deceive", "deceived", "deceives"], correct: 1 },
+          { q: "God said: I _____ establish my covenant with you.", opts: ["will", "am", "do"], correct: 0 },
+          { q: "This is _____ bone and _____ flesh.", opts: ["my / my", "his / her", "our / their"], correct: 0 }
+        ]
+      },
+      {
+        title: "Reading",
+        instruction: "Read the short text and answer.",
+        content: `<p style="background:#F8F8F8; padding:12px; border-radius:10px; margin-bottom:14px;">
+          In the beginning God created the heavens and the earth. God saw that the light was good. 
+          On the sixth day God created man in His own image. God looked at everything He had made, and it was very good.
+        </p>`,
+        questions: [
+          { q: "What did God create in the beginning?", opts: ["Only the earth", "The heavens and the earth", "Only animals"], correct: 1 },
+          { q: "When did God create man?", opts: ["On the first day", "On the sixth day", "On the seventh day"], correct: 1 }
+        ]
+      },
+      {
+        title: "Writing",
+        instruction: "Write 6–8 sentences about the Creation or the story of Noah using Present Simple and Past Simple.",
+        content: `<textarea id="exam-writing" rows="6" style="width:100%; padding:12px; border:2px solid #E5E5E5; border-radius:12px; font-size:15px;" placeholder="Write here..."></textarea>
+                  <p style="font-size:13px; color:#777; margin-top:8px;">Minimum 6 sentences. Use correct grammar.</p>`
+      },
+      {
+        title: "Speaking",
+        instruction: "Imagine you record your answers (in the full version you will record audio).",
+        content: `<ol style="padding-left:20px; line-height:1.8;">
+          <li>What did God create on the first day?</li>
+          <li>Tell the story of Adam and Eve in 40–50 seconds.</li>
+          <li>Why did God send the flood?</li>
+          <li>What promise did God give to Noah?</li>
+        </ol>
+        <p style="margin-top:12px; color:var(--text-light);">In the full app you will record your voice. For now, just continue.</p>`
+      }
+    ];
+
+    // ========== INIT ==========
+    function init() {
+      const savedUser = localStorage.getItem('bibliago_user');
+      const savedProgress = localStorage.getItem('bibliago_progress');
+      if (savedUser) {
+        user = JSON.parse(savedUser);
+        if (savedProgress) progress = { ...progress, ...JSON.parse(savedProgress) };
+        showScreen('home');
+        updateUI();
+        renderPath();
+        updateLangButtons();
+      } else {
+        showScreen('register');
+      }
+    }
+
+    function register() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const role = document.getElementById('reg-role').value;
+      if (!name || !email || !password) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      user = {
+        name, email, role,
+        driveBackup: document.getElementById('reg-drive').checked,
+        docVerified: false
+      };
+      localStorage.setItem('bibliago_user', JSON.stringify(user));
+      localStorage.setItem('bibliago_progress', JSON.stringify(progress));
+      showScreen('home');
+      updateUI();
+      renderPath();
+    }
+
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.getElementById('screen-' + name).classList.remove('hidden');
+      const nav = document.getElementById('bottom-nav');
+      if (name === 'register') nav.classList.add('hidden');
+      else {
+        nav.classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      }
+      if (name === 'profile') updateProfile();
+      if (name === 'home') { updateUI(); renderPath(); }
+    }
+
+    function updateUI() {
+      document.getElementById('streak-count').textContent = progress.streak;
+      document.getElementById('xp-count').textContent = progress.xp;
+      document.getElementById('energy-count').textContent = progress.energy;
+      document.getElementById('gems-count').textContent = progress.gems;
+      document.getElementById('lesson-energy').textContent = progress.energy;
+    }
+
+    function updateProfile() {
+      document.getElementById('profile-name').textContent = user.name;
+      document.getElementById('profile-role').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      document.getElementById('profile-doc-status').textContent = user.docVerified ? 'Verified ✅' : 'Pending verification';
+      document.getElementById('profile-xp').textContent = progress.xp;
+      document.getElementById('profile-streak').textContent = progress.streak;
+      document.getElementById('profile-max-streak').textContent = progress.maxStreak;
+      updateLangButtons();
+    }
+
+    function updateLangButtons() {
+      document.getElementById('pref-en')?.classList.toggle('selected', progress.langPref === 'en');
+      document.getElementById('pref-es')?.classList.toggle('selected', progress.langPref === 'es');
+    }
+
+    function setLangPref(lang) {
+      progress.langPref = lang;
+      saveProgress();
+      updateLangButtons();
+    }
+
+    function renderPath() {
+      const path = document.getElementById('learning-path');
+      path.innerHTML = '';
+      let currentUnit = '';
+      lessons.forEach((lesson, index) => {
+        if (lesson.unit !== currentUnit) {
+          currentUnit = lesson.unit;
+          const u = document.createElement('div');
+          u.className = 'unit-title';
+          u.textContent = currentUnit;
+          path.appendChild(u);
+        }
+        if (index > 0) {
+          const c = document.createElement('div');
+          c.className = 'connector';
+          path.appendChild(c);
+        }
+        const node = document.createElement('div');
+        node.className = 'lesson-node';
+        const isCompleted = progress.completedLessons.includes(lesson.id);
+        const isAvailable = index === 0 || progress.completedLessons.includes(lessons[index - 1].id);
+
+        if (lesson.type === 'exam') {
+          node.classList.add('exam');
+          node.innerHTML = 'LEVEL 1<br>EXAM';
+        } else {
+          node.textContent = lesson.emoji;
+        }
+
+        if (isCompleted) node.classList.add('completed');
+        else if (isAvailable) {
+          node.classList.add('available');
+          node.onclick = () => startLesson(lesson);
+        } else node.classList.add('locked');
+
+        path.appendChild(node);
+      });
+    }
+
+    let currentLesson = null;
+    let currentStep = 0;
+
+    function startLesson(lesson) {
+      if (lesson.type === 'exam') {
+        startExam();
+        return;
+      }
+      if (progress.energy < 5) {
+        alert('Not enough energy! Wait for it to recharge or use gems.');
+        return;
+      }
+      currentLesson = lesson;
+      currentStep = 0;
+      progress.energy -= 5;
+      saveProgress();
+      updateUI();
+      document.getElementById('lesson-title').textContent = lesson.title;
+      document.getElementById('lesson-objective').textContent = lesson.objective;
+      document.getElementById('lesson-header').textContent = lesson.unit;
+      showScreen('lesson');
+      showStep();
+    }
+
+    function showStep() {
+      const step = currentLesson.steps[currentStep];
+      const container = document.getElementById('lesson-content');
+      const progressBar = document.getElementById('lesson-progress');
+      progressBar.style.width = ((currentStep / currentLesson.steps.length) * 100) + '%';
+      document.getElementById('btn-next').style.display = 'block';
+
+      if (step.type === 'lang-check') {
+        document.getElementById('modal-lang').classList.remove('hidden');
+        container.innerHTML = `<p>New grammar topic: <strong>${step.topic}</strong></p>
+                               <p>Please choose the language for the explanation.</p>`;
+        return;
+      }
+
+      if (step.type === 'grammar') {
+        const text = progress.langPref === 'es' ? step.es : step.en;
+        container.innerHTML = `<h3>${step.title}</h3>${text}`;
+      } else if (step.type === 'examples') {
+        container.innerHTML = step.content;
+      } else if (step.type === 'exercise') {
+        let html = `<p style="font-weight:700; margin-bottom:12px;">${step.question}</p><div class="options">`;
+        step.options.forEach((opt, i) => {
+          html += `<div class="option" onclick="selectOption(this, ${i}, ${step.correct})">${opt}</div>`;
+        });
+        html += `</div><div id="feedback"></div>`;
+        container.innerHTML = html;
+        document.getElementById('btn-next').style.display = 'none';
+      } else if (step.type === 'production') {
+        container.innerHTML = step.content;
+      }
+    }
+
+    function chooseLang(lang) {
+      progress.langPref = lang;
+      saveProgress();
+      document.getElementById('modal-lang').classList.add('hidden');
+      currentStep++;
+      showStep();
+    }
+
+    function selectOption(el, selected, correct) {
+      document.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+      const feedback = document.getElementById('feedback');
+      if (selected === correct) {
+        el.classList.add('correct');
+        feedback.innerHTML = `<div class="feedback correct">Correct! ✅</div>`;
+      } else {
+        el.classList.add('wrong');
+        document.querySelectorAll('.option')[correct].classList.add('correct');
+        feedback.innerHTML = `<div class="feedback wrong">Not quite. The correct answer is highlighted.</div>`;
+      }
+      document.getElementById('btn-next').style.display = 'block';
+    }
+
+    function nextStep() {
+      currentStep++;
+      if (currentStep >= currentLesson.steps.length) {
+        completeLesson();
+      } else {
+        showStep();
+      }
+    }
+
+    function completeLesson() {
+      if (!progress.completedLessons.includes(currentLesson.id)) {
+        progress.completedLessons.push(currentLesson.id);
+        progress.xp += 15;
+        const today = new Date().toDateString();
+        if (progress.lastStudyDate !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          if (progress.lastStudyDate === yesterday.toDateString()) progress.streak += 1;
+          else progress.streak = 1;
+          progress.lastStudyDate = today;
+          if (progress.streak > progress.maxStreak) progress.maxStreak = progress.streak;
+        }
+      }
+      saveProgress();
+      document.getElementById('reward-xp').textContent = '+15 XP';
+      document.getElementById('reward-streak').textContent = progress.streak > 1 ? `🔥 ${progress.streak}-day streak!` : '';
+      document.getElementById('modal-reward').classList.remove('hidden');
+    }
+
+    function closeReward() {
+      document.getElementById('modal-reward').classList.add('hidden');
+      showScreen('home');
+    }
+
+    let examPartIndex = 0;
+    let examScore = 0;
+
+    function startExam() {
+      if (progress.completedLessons.length < 5) {
+        alert('Complete all lessons of Level 1 before taking the exam.');
+        return;
+      }
+      examPartIndex = 0;
+      examScore = 0;
+      showScreen('exam');
+      showExamPart();
+    }
+
+    function showExamPart() {
+      const part = examParts[examPartIndex];
+      document.getElementById('exam-section-title').textContent = part.title;
+      document.getElementById('exam-instruction').textContent = part.instruction;
+      const container = document.getElementById('exam-content');
+
+      if (part.questions) {
+        let html = part.content || '';
+        part.questions.forEach((qu, qi) => {
+          html += `<div style="margin:18px 0;"><p style="font-weight:700;">${qi + 1}. ${qu.q}</p><div class="options">`;
+          qu.opts.forEach((o, oi) => {
+            html += `<div class="option" onclick="selectExamOption(this, ${qi}, ${oi}, ${qu.correct})">${o}</div>`;
+          });
+          html += `</div></div>`;
+        });
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = part.content;
+      }
+    }
+
+    function selectExamOption(el, qIndex, selected, correct) {
+      const parent = el.parentElement;
+      parent.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+      if (selected === correct) {
+        el.classList.add('correct');
+        examScore += 1;
+      } else {
+        el.classList.add('wrong');
+        parent.children[correct].classList.add('correct');
+      }
+    }
+
+    function nextExamPart() {
+      examPartIndex++;
+      if (examPartIndex >= examParts.length) {
+        finishExam();
+      } else {
+        showExamPart();
+      }
+    }
+
+    function finishExam() {
+      const totalQuestions = 7;
+      const percent = Math.round((examScore / totalQuestions) * 100);
+      const passed = percent >= 75;
+      alert(`Exam finished!\n\nScore: ${percent}%\n${passed ? '✅ PASSED – Level 1 complete!' : '❌ Not passed. Minimum is 75%. Review the lessons and try again.'}`);
+      if (passed && !progress.completedLessons.includes(6)) {
+        progress.completedLessons.push(6);
+        progress.xp += 80;
+        saveProgress();
+      }
+      showScreen('home');
+    }
+
+    function saveProgress() {
+      localStorage.setItem('bibliago_progress', JSON.stringify(progress));
+    }
+
+    function backupToDrive() {
+      alert('Google Drive backup will be available in the full version.\nYour progress is currently saved in local storage.');
+    }
+
+    function logout() {
+      if (confirm('Log out? (Local progress will remain)')) {
+        localStorage.removeItem('bibliago_user');
+        user = null;
+        showScreen('register');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
